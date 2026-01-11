@@ -440,3 +440,33 @@ Started: Sun 11 Jan 10:55:32 GMT 2026
   - The --file flag can be used multiple times to attach multiple files
   - Providers include: anthropic, openai, google, xai, ollama
 ---
+
+## 2026-01-11 - ralph-tui-45r.13
+- What was implemented:
+  - US-013: Task Detail View with full acceptance criteria
+  - TaskDetailView component with comprehensive task details display
+  - Full task title, ID, status, and metadata section
+  - Description in scrollable container (separated from acceptance criteria)
+  - Acceptance criteria parser: extracts markdown checklists (- [ ]/- [x]) as interactive checklist
+  - Priority display with color coding (P0-P4, mapped to error/warning/normal colors)
+  - Labels/tags display with accent color styling
+  - Dependencies section showing "Blocked by" and "Blocks" relationships
+  - Completion notes section for closed tasks
+  - Extended TaskItem type with additional fields (priority, labels, dependsOn, blocks, closeReason, etc.)
+  - View mode toggle in App and RunApp (list <-> detail)
+  - Esc key handling to return from detail view to list view
+  - 't' key shortcut to return to task list from any view
+  - Enter key on task list drills into detail view
+- Files changed:
+  - src/tui/components/TaskDetailView.tsx (new) - Full task detail display
+  - src/tui/components/App.tsx (updated) - View mode toggle and keyboard handling
+  - src/tui/components/RunApp.tsx (updated) - View mode toggle and keyboard handling
+  - src/tui/components/index.ts (updated) - Export TaskDetailView
+  - src/tui/types.ts (updated) - Extended TaskItem type, added TaskDetailViewProps
+- **Learnings:**
+  - OpenTUI's TextProps doesn't support 'bold' attribute - text styling is done via colors/fg only
+  - The TaskPriority type should be imported from trackers/types.ts to avoid duplicate exports
+  - Acceptance criteria parsing can be done by looking for markdown checklist patterns
+  - View mode toggle pattern with detailTask state allows full-screen detail views
+  - Separating q (quit) and Escape (back) provides better UX for drill-down navigation
+---
