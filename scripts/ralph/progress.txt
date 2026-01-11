@@ -617,3 +617,63 @@ Started: Sun 11 Jan 10:55:32 GMT 2026
   - Log cleanup should sort by iteration number descending to keep most recent
   - Partial task ID matching in filter enables fuzzy search (e.g., "US-" matches all user stories)
 ---
+
+## 2026-01-11 - ralph-tui-45r.21
+- What was implemented:
+  - US-021: Single Instance Lock with full acceptance criteria
+  - New lock.ts module with dedicated lock management functionality
+  - Lock file (.ralph-session/ralph.lock) contains: PID, start time, session ID, hostname
+  - checkLock(): Check for existing lock and determine if stale (PID not running)
+  - acquireLockWithPrompt(): Main entry point with proper error messages and interactive prompts
+  - Error message matches spec: "Ralph already running in this repo (PID: X)"
+  - Interactive prompt for stale lock cleanup: "Remove the stale lock and continue? [Y/n]"
+  - Non-interactive mode (--headless) auto-cleans stale locks with warning
+  - registerLockCleanupHandlers(): Register exit/SIGTERM/exception handlers for crash recovery
+  - Lock released on clean exit and all error paths
+  - --force flag still works to override active locks
+- Files changed:
+  - src/session/lock.ts (new) - Dedicated lock management module
+  - src/session/index.ts (updated) - Export new lock functions
+  - src/commands/run.tsx (updated) - Use acquireLockWithPrompt, register cleanup handlers
+- **Learnings:**
+  - Separating lock logic into its own module keeps concerns clean
+  - Interactive vs non-interactive mode (headless) needs different stale lock handling
+  - process.kill(pid, 0) is the standard way to check if a process is running
+  - Cleanup handlers should be registered and unregistered properly to prevent memory leaks
+  - The session module already had good primitives; this just adds user-facing integration
+---
+
+## 2026-01-11 - ralph-tui-45r.23
+- What was implemented:
+  - US-023: Prompt Template System with full acceptance criteria
+  - Handlebars template engine integration for flexible prompt rendering
+  - Default templates bundled for each tracker type: default, beads, beads-bv, json
+  - Custom template path in config: prompt_template: ./my-prompt.hbs
+  - Template variables: {{taskId}}, {{taskTitle}}, {{taskDescription}}, {{acceptanceCriteria}},
+    {{epicId}}, {{epicTitle}}, {{trackerName}}, {{labels}}, {{priority}}, {{status}}, {{type}},
+    {{dependsOn}}, {{blocks}}, {{model}}, {{agentName}}, {{cwd}}, {{currentDate}}, {{currentTimestamp}}
+  - `ralph-tui template show` command to display current template
+  - `ralph-tui template init` command to copy default template for customization
+  - Auto-detection of tracker type for template selection
+  - Template caching for performance
+  - Graceful fallback to simple format if template rendering fails
+- Files changed:
+  - src/templates/types.ts (new) - Type definitions for template system
+  - src/templates/builtin.ts (new) - Built-in template strings for each tracker
+  - src/templates/engine.ts (new) - Template loading, rendering, and caching
+  - src/templates/index.ts (new) - Module exports
+  - src/templates/defaults/*.hbs (new) - Template files (documentation only)
+  - src/commands/template.ts (new) - Template show and init commands
+  - src/commands/index.ts (updated) - Export template command
+  - src/cli.tsx (updated) - Add template subcommand handling
+  - src/config/types.ts (updated) - Add prompt_template config field
+  - src/config/index.ts (updated) - Merge prompt_template in config loading
+  - src/engine/index.ts (updated) - Use template system for prompt building
+  - package.json (updated) - Add handlebars dependency
+- **Learnings:**
+  - Handlebars compile() with noEscape: true prevents HTML entity encoding in output
+  - Template caching by source key prevents recompilation overhead
+  - Built-in templates as strings avoid runtime file I/O issues in bundled packages
+  - extractAcceptanceCriteria() can parse markdown sections or checklist patterns
+  - The template init command with --force flag allows safe template customization workflow
+---
