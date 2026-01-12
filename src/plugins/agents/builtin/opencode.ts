@@ -46,6 +46,7 @@ export class OpenCodeAgentPlugin extends BaseAgentPlugin {
     supportsStreaming: true,
     supportsInterrupt: true,
     supportsFileContext: true,
+    supportsSubagentTracing: false,
   };
 
   /** AI provider (anthropic, openai, google, xai, ollama) */

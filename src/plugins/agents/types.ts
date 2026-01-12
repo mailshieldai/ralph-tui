@@ -202,6 +202,12 @@ export interface AgentPluginMeta {
 
   /** Whether the agent supports file context */
   supportsFileContext: boolean;
+
+  /** Whether the agent supports subagent tracing (structured output for tracking spawned subagents) */
+  supportsSubagentTracing: boolean;
+
+  /** Format of structured output when supportsSubagentTracing is true */
+  structuredOutputFormat?: 'json' | 'jsonl';
 }
 
 /**

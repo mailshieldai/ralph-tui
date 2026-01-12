@@ -38,6 +38,8 @@ export class ClaudeAgentPlugin extends BaseAgentPlugin {
     supportsStreaming: true,
     supportsInterrupt: true,
     supportsFileContext: true,
+    supportsSubagentTracing: true,
+    structuredOutputFormat: 'jsonl',
   };
 
   /** Print mode: text, json, or stream-json */
