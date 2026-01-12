@@ -34,29 +34,19 @@ export interface AppProps {
 }
 
 /**
- * Default demo tasks for initial display
+ * Create default application state with empty tasks.
+ * Real tasks come from the tracker when using 'ralph-tui run'.
  */
-const defaultTasks: TaskItem[] = [
-  { id: 'task-1', title: 'Initialize project', status: 'done', description: 'Set up project scaffolding' },
-  { id: 'task-2', title: 'Create TUI layout', status: 'active', description: 'Build the core TUI components', iteration: 1 },
-  { id: 'task-3', title: 'Implement keyboard nav', status: 'pending', description: 'Add keyboard navigation support' },
-  { id: 'task-4', title: 'Add task list view', status: 'pending', description: 'Create scrollable task list' },
-  { id: 'task-5', title: 'Blocked by API', status: 'blocked', description: 'Waiting for tracker API implementation' },
-];
-
-/**
- * Create default application state
- */
-function createDefaultState(tasks: TaskItem[] = defaultTasks): AppState {
+function createDefaultState(tasks: TaskItem[] = []): AppState {
   const completedTasks = tasks.filter((t) => t.status === 'done').length;
   const progress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
   return {
     header: {
-      status: 'running',
-      epicName: 'Ralph TUI',
+      status: 'ready',
+      epicName: 'No Epic Selected',
       elapsedTime: 0,
-      trackerName: 'beads',
+      trackerName: '-',
     },
     footer: {
       progress,

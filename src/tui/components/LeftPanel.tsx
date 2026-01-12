@@ -132,7 +132,7 @@ export function LeftPanel({ tasks, selectedIndex, width = 45 }: LeftPanelProps &
       >
         {tasks.length === 0 ? (
           <box style={{ padding: 1 }}>
-            <text fg={colors.fg.muted}>No tasks</text>
+            <text fg={colors.fg.muted}>No tasks loaded</text>
           </box>
         ) : (
           tasks.map((task, index) => (

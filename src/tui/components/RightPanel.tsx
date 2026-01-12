@@ -8,18 +8,43 @@ import { colors, getTaskStatusColor, getTaskStatusIndicator } from '../theme.js'
 import type { RightPanelProps } from '../types.js';
 
 /**
- * Display when no task is selected
+ * Display when no task is selected.
+ * Shows helpful setup instructions for new users.
  */
 function NoSelection(): ReactNode {
   return (
     <box
       style={{
         flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        flexDirection: 'column',
+        padding: 2,
       }}
     >
-      <text fg={colors.fg.muted}>Select a task to view details</text>
+      <box style={{ marginBottom: 1 }}>
+        <text fg={colors.fg.primary}>Getting Started</text>
+      </box>
+      <box style={{ marginBottom: 2 }}>
+        <text fg={colors.fg.secondary}>
+          No tasks available. To start working with Ralph:
+        </text>
+      </box>
+      <box style={{ flexDirection: 'column', gap: 1 }}>
+        <text fg={colors.fg.muted}>
+          <span fg={colors.accent.primary}>1.</span> Run{' '}
+          <span fg={colors.fg.secondary}>ralph-tui setup</span> to configure your project
+        </text>
+        <text fg={colors.fg.muted}>
+          <span fg={colors.accent.primary}>2.</span> Run{' '}
+          <span fg={colors.fg.secondary}>ralph-tui run</span> to start execution
+        </text>
+        <text fg={colors.fg.muted}>
+          <span fg={colors.accent.primary}>3.</span> Or run{' '}
+          <span fg={colors.fg.secondary}>ralph-tui --help</span> for more options
+        </text>
+      </box>
+      <box style={{ marginTop: 2 }}>
+        <text fg={colors.fg.dim}>Press 'q' or Esc to quit</text>
+      </box>
     </box>
   );
 }
@@ -79,9 +104,9 @@ function TaskDetails({
         </box>
       )}
 
-      {/* Current iteration info */}
+      {/* Iteration output - shows output for the selected task's iteration */}
       <box
-        title={`Iteration ${currentIteration}`}
+        title={currentIteration > 0 ? `Iteration ${currentIteration}` : 'Output'}
         style={{
           flexGrow: 1,
           border: true,
@@ -90,10 +115,14 @@ function TaskDetails({
         }}
       >
         <scrollbox style={{ flexGrow: 1, padding: 1 }}>
-          {iterationOutput ? (
+          {iterationOutput !== undefined && iterationOutput.length > 0 ? (
             <text fg={colors.fg.secondary}>{iterationOutput}</text>
+          ) : iterationOutput === '' ? (
+            <text fg={colors.fg.muted}>No output captured</text>
+          ) : currentIteration === 0 ? (
+            <text fg={colors.fg.muted}>Task not yet executed</text>
           ) : (
-            <text fg={colors.fg.muted}>Waiting for iteration output...</text>
+            <text fg={colors.fg.muted}>Waiting for output...</text>
           )}
         </scrollbox>
       </box>
