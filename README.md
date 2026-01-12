@@ -6,7 +6,7 @@
 
 **AI Agent Loop Orchestrator** - A terminal UI for orchestrating AI coding agents to work through task lists autonomously.
 
-Ralph TUI connects your AI coding assistant (Claude Code, OpenCode) to your task tracker (Beads, prd.json) and runs them in an autonomous loop, completing tasks one-by-one with intelligent selection, error handling, and full visibility into what's happening.
+Ralph TUI connects your AI coding assistant (Claude Code, OpenCode) to your task tracker (prd.json, Beads) and runs them in an autonomous loop, completing tasks one-by-one with intelligent selection, error handling, and full visibility into what's happening.
 
 ---
 
@@ -16,6 +16,7 @@ Ralph TUI connects your AI coding assistant (Claude Code, OpenCode) to your task
 - [What is Ralph TUI?](#what-is-ralph-tui)
 - [Installation](#installation)
 - [Getting Started](#getting-started)
+- [Creating PRDs and Tasks](#creating-prds-and-tasks)
 - [CLI Commands Reference](#cli-commands-reference)
 - [TUI Keyboard Shortcuts](#tui-keyboard-shortcuts)
 - [Configuration](#configuration)
@@ -31,36 +32,44 @@ Ralph TUI connects your AI coding assistant (Claude Code, OpenCode) to your task
 
 ## Quick Start
 
-Choose your path based on your task tracker:
+**The fastest way to get started is with JSON mode** - no external dependencies required!
 
-### With Beads (bd CLI)
+### 5-Minute Quickstart (JSON Mode)
 
 ```bash
-# Install
+# 1. Install
 bun install -g ralph-tui
 
-# Run with an epic
-ralph-tui run --epic my-project-epic
-```
-
-### With prd.json
-
-```bash
-# Install
-bun install -g ralph-tui
-
-# Run with a PRD file
-ralph-tui run --prd ./scripts/ralph/prd.json
-```
-
-### Interactive Setup
-
-```bash
-# Run the setup wizard
+# 2. Setup (creates config, installs skills)
+cd your-project
 ralph-tui setup
 
-# Then launch the TUI
-ralph-tui
+# 3. Create a PRD for your feature
+ralph-tui create-prd --chat
+# Answer the AI's questions about your feature
+# When done, you'll be prompted to create tasks
+
+# 4. Run Ralph!
+ralph-tui run --prd ./prd.json
+```
+
+That's it! Ralph will work through your tasks autonomously.
+
+### What Just Happened?
+
+1. **Setup** configured Ralph and installed the `ralph-tui-prd` skill for AI-powered PRD creation
+2. **Create-prd** had an AI conversation about your feature and created:
+   - A PRD markdown file (`./tasks/prd-<feature>.md`)
+   - A task file (`./prd.json`) ready for Ralph to execute
+3. **Run** started the autonomous loop - Ralph picks tasks, builds prompts, runs your AI agent, and marks tasks complete
+
+### Alternative: With Beads Tracker
+
+If you use [Beads](https://github.com/anthropics/beads) for issue tracking:
+
+```bash
+# Run with an epic
+ralph-tui run --epic my-project-epic
 ```
 
 ---
@@ -90,7 +99,7 @@ Ralph TUI is an **AI Agent Loop Orchestrator** that automates the cycle of selec
 
 **Key Concepts:**
 
-- **Task Tracker**: Where your tasks live (Beads issues, prd.json user stories)
+- **Task Tracker**: Where your tasks live (prd.json user stories, Beads issues)
 - **Agent Plugin**: The AI CLI that does the work (Claude Code, OpenCode)
 - **Prompt Template**: Handlebars template that turns task data into agent prompts
 - **Completion Detection**: The `<promise>COMPLETE</promise>` token signals task completion
@@ -106,9 +115,6 @@ Ralph TUI is an **AI Agent Loop Orchestrator** that automates the cycle of selec
 - One of these AI coding agents:
   - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`claude` CLI)
   - [OpenCode](https://github.com/opencode-ai/opencode) (`opencode` CLI)
-- One of these task trackers:
-  - [Beads](https://github.com/anthropics/beads) (`.beads/` directory with `bd` CLI)
-  - `prd.json` file (simple JSON-based task list)
 
 ### Install
 
@@ -132,25 +138,41 @@ ralph-tui setup
 ```
 
 The interactive wizard will:
-1. Detect available trackers (Beads `.beads/` directory, prd.json files)
-2. Detect installed agents (Claude Code, OpenCode)
-3. Create a `.ralph-tui/config.toml` configuration file
-4. Optionally install the Ralph claude-code skill for better integration
+1. Detect installed agents (Claude Code, OpenCode)
+2. Create a `.ralph-tui/config.toml` configuration file
+3. Install bundled skills for PRD creation and task conversion
+4. Optionally detect existing trackers (Beads, prd.json files)
 
-### Step 2: Start Ralph
+### Step 2: Create a PRD
 
 ```bash
+# AI-powered PRD creation (recommended)
+ralph-tui create-prd --chat
+
+# Or use the template-based wizard
+ralph-tui create-prd
+```
+
+The AI will:
+1. Ask about your feature goals and requirements
+2. Ask about quality gates (what commands must pass)
+3. Generate a structured PRD with user stories
+4. Ask if you want to create tasks for a tracker
+
+### Step 3: Start Ralph
+
+```bash
+# With prd.json (simplest - no external dependencies)
+ralph-tui run --prd ./prd.json
+
 # With Beads tracker
 ralph-tui run --epic your-epic-id
-
-# With prd.json tracker
-ralph-tui run --prd ./prd.json
 
 # Or launch the interactive TUI first
 ralph-tui
 ```
 
-### Step 3: Watch the Progress
+### Step 4: Watch the Progress
 
 The TUI shows:
 - **Left Panel**: Task list with status indicators
@@ -166,9 +188,108 @@ Ralph will:
 5. Detect `<promise>COMPLETE</promise>` in the output
 6. Mark the task complete and move to the next one
 
-### Step 4: Control Execution
+### Step 5: Control Execution
 
 Press `p` to pause, `q` to quit, `d` for the dashboard, `i` for iteration history.
+
+---
+
+## Creating PRDs and Tasks
+
+Ralph TUI includes a complete workflow for creating PRDs and converting them to tracker tasks.
+
+### The PRD Workflow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  1. CREATE  │────▶│  2. REVIEW  │────▶│  3. CONVERT │────▶│   4. RUN    │
+│    PRD      │     │    PRD      │     │  TO TASKS   │     │   RALPH     │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### Step 1: Create a PRD
+
+```bash
+# AI-powered (recommended)
+ralph-tui create-prd --chat
+
+# Template-based wizard
+ralph-tui create-prd
+```
+
+The AI will ask about:
+- **Feature goal**: What problem does this solve?
+- **Target users**: Who will use this feature?
+- **Scope**: What should it include/exclude?
+- **Quality gates**: What commands must pass? (pnpm typecheck, npm run lint, etc.)
+
+Output: `./tasks/prd-<feature-name>.md`
+
+### Step 2: Review the PRD
+
+Open the generated PRD and verify:
+- User stories are small enough (completable in one agent session)
+- Acceptance criteria are verifiable (not vague)
+- Quality gates match your project's tooling
+- Dependencies are correct (schema → backend → UI)
+
+### Step 3: Convert to Tracker Tasks
+
+After creating a PRD, Ralph will ask:
+
+```
+Would you like to create tasks for a tracker?
+  A. JSON (prd.json) - Simple, no external dependencies
+  B. Beads - Git-backed issue tracker with dependencies
+  C. Skip - I'll create tasks manually
+```
+
+Or convert manually:
+
+```bash
+# Convert to prd.json
+ralph-tui convert --to json ./tasks/prd-my-feature.md
+
+# The conversion skill will:
+# 1. Extract user stories from the PRD
+# 2. Extract quality gates from the "## Quality Gates" section
+# 3. Append quality gates to each story's acceptance criteria
+# 4. Set up dependencies between stories
+# 5. Output to ./prd.json
+```
+
+### Step 4: Run Ralph
+
+```bash
+ralph-tui run --prd ./prd.json
+```
+
+### Quality Gates
+
+PRDs should include a **Quality Gates** section that specifies project-specific commands:
+
+```markdown
+## Quality Gates
+
+These commands must pass for every user story:
+- `pnpm typecheck` - Type checking
+- `pnpm lint` - Linting
+
+For UI stories, also include:
+- Verify in browser using dev-browser skill
+```
+
+When converting to tasks, these gates are automatically appended to each story's acceptance criteria.
+
+### Bundled Skills
+
+Ralph TUI includes these skills (installed during `ralph-tui setup`):
+
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `ralph-tui-prd` | `/prd`, `create a prd` | AI-powered PRD creation with quality gates |
+| `ralph-tui-create-json` | `/ralph`, `create json tasks` | Convert PRD to prd.json format |
+| `ralph-tui-create-beads` | `create beads` | Convert PRD to Beads issues |
 
 ---
 
@@ -196,8 +317,8 @@ Press `p` to pause, `q` to quit, `d` for the dashboard, `i` for iteration histor
 
 | Option | Description |
 |--------|-------------|
-| `--epic <id>` | Epic ID for beads tracker |
 | `--prd <path>` | PRD file path (auto-switches to json tracker) |
+| `--epic <id>` | Epic ID for beads tracker |
 | `--agent <name>` | Override agent plugin (e.g., `claude`, `opencode`) |
 | `--model <name>` | Override model (e.g., `opus`, `sonnet`) |
 | `--tracker <name>` | Override tracker plugin (e.g., `beads`, `beads-bv`, `json`) |
@@ -207,6 +328,25 @@ Press `p` to pause, `q` to quit, `d` for the dashboard, `i` for iteration histor
 | `--output-dir <path>` | Directory for iteration logs (default: .ralph-tui/iterations) |
 | `--headless` | Run without TUI (alias: `--no-tui`) |
 | `--no-setup` | Skip interactive setup even if no config exists |
+
+### Create-PRD Options
+
+| Option | Description |
+|--------|-------------|
+| `--chat`, `--ai` | Use AI-powered chat mode (recommended) |
+| `--agent <name>` | Override agent for chat mode |
+| `--output, -o <dir>` | Output directory for PRD files (default: ./tasks) |
+| `--stories, -n <count>` | Number of user stories (template mode only) |
+| `--force, -f` | Overwrite existing files |
+
+### Convert Options
+
+| Option | Description |
+|--------|-------------|
+| `--to <format>` | Target format: `json` |
+| `--output, -o <path>` | Output file path (default: `./prd.json`) |
+| `--branch, -b <name>` | Git branch name (prompts if not provided) |
+| `--force, -f` | Overwrite existing files |
 
 ### Resume Options
 
@@ -222,15 +362,6 @@ Press `p` to pause, `q` to quit, `d` for the dashboard, `i` for iteration histor
 |--------|-------------|
 | `--json` | Output in JSON format for CI/scripts |
 | `--cwd <path>` | Working directory |
-
-### Convert Options
-
-| Option | Description |
-|--------|-------------|
-| `--to <format>` | Target format: `json` |
-| `--output, -o <path>` | Output file path (default: `./prd.json`) |
-| `--branch, -b <name>` | Git branch name (prompts if not provided) |
-| `--force, -f` | Overwrite existing files |
 
 ### Logs Options
 
@@ -287,20 +418,15 @@ Ralph TUI uses TOML configuration files with layered overrides:
 # .ralph-tui/config.toml
 
 # Default tracker and agent
-tracker = "beads-bv"
+tracker = "json"
 agent = "claude"
 
 # Execution limits
 maxIterations = 10
 
-# Tracker-specific options
-[trackerOptions]
-beadsDir = ".beads"
-labels = "ralph"
-
 # Agent-specific options
 [agentOptions]
-model = "opus"
+model = "sonnet"
 
 # Error handling
 [errorHandling]
@@ -321,7 +447,7 @@ subagentTracingDetail = "full"
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `tracker` | string | Default tracker plugin (`beads`, `beads-bv`, `json`) |
+| `tracker` | string | Default tracker plugin (`json`, `beads`, `beads-bv`) |
 | `agent` | string | Default agent plugin (`claude`, `opencode`) |
 | `maxIterations` | number | Maximum iterations (0 = unlimited) |
 | `iterationDelay` | number | Delay in ms between iterations |
@@ -347,52 +473,73 @@ subagentTracingDetail = "full"
 
 | Plugin | Description | Features |
 |--------|-------------|----------|
+| `json` | prd.json file-based tracker | Simple JSON format, no external tools |
 | `beads` | Beads issue tracker via `bd` CLI | Hierarchy, dependencies, labels |
 | `beads-bv` | Beads + `bv` graph analysis | Intelligent selection via PageRank, critical path |
-| `json` | prd.json file-based tracker | Simple JSON format, no external tools |
 
 ### Plugin Comparison Matrix
 
-| Feature | beads | beads-bv | json |
-|---------|-------|----------|------|
-| External CLI | `bd` | `bd` + `bv` | None |
-| Hierarchy (epics) | Yes | Yes | No |
+| Feature | json | beads | beads-bv |
+|---------|------|-------|----------|
+| External CLI | None | `bd` | `bd` + `bv` |
 | Dependencies | Yes | Yes | Yes |
 | Priority ordering | Yes | Yes | Yes |
-| Graph analysis | No | Yes | No |
-| Sync with git | Yes | Yes | No |
+| Hierarchy (epics) | No | Yes | Yes |
+| Graph analysis | No | No | Yes |
+| Sync with git | No | Yes | Yes |
+| Setup complexity | Lowest | Medium | Highest |
 
 ---
 
 ## Best Practices
 
-### 1. Use Meaningful Task Descriptions
+### 1. Start with JSON Mode
 
-Include clear acceptance criteria in your tasks. The more context in the prompt, the better the agent performs.
+The `json` tracker has no external dependencies - just a `prd.json` file. Perfect for getting started quickly.
 
-### 2. Start with Small Iterations
+### 2. Use AI-Powered PRD Creation
+
+```bash
+ralph-tui create-prd --chat
+```
+
+The AI asks contextual questions and generates higher-quality PRDs than the template wizard.
+
+### 3. Keep User Stories Small
+
+Each story should be completable in one agent session (~one context window). If you can't describe it in 2-3 sentences, split it.
+
+### 4. Include Quality Gates in PRDs
+
+Always specify what commands must pass:
+
+```markdown
+## Quality Gates
+
+These commands must pass for every user story:
+- `pnpm typecheck` - Type checking
+- `pnpm lint` - Linting
+```
+
+### 5. Start with Small Iterations
 
 Set `maxIterations = 5` initially to monitor behavior before running longer sessions.
 
-### 3. Use beads-bv for Complex Projects
-
-If your project has many interdependent tasks, `beads-bv` uses graph analysis to prioritize tasks that unblock the most downstream work.
-
-### 4. Customize Your Prompt Template
-
-```bash
-ralph-tui template init
-# Edit .ralph-tui-prompt.hbs to match your workflow
-```
-
-### 5. Review Iteration Logs
+### 6. Review Iteration Logs
 
 ```bash
 ralph-tui logs --iteration 3
 ralph-tui logs --task US-005
 ```
 
-### 6. Handle Errors Gracefully
+### 7. Customize Your Prompt Template
+
+```bash
+ralph-tui template init
+# Edit .ralph-tui-prompt.hbs to match your workflow
+```
+
+### 8. Handle Errors Gracefully
 
 Configure error handling based on your needs:
 - `retry`: For flaky operations (network issues)
@@ -463,9 +610,9 @@ Ralph watches for this token in stdout. When detected:
 
 ### "No tasks available"
 
-- Check that your epic has open tasks: `bd list --epic your-epic`
-- Verify label filters in config match your tasks
+- Check that your prd.json has tasks with `passes: false`
 - Ensure tasks aren't blocked by incomplete dependencies
+- For beads: check that your epic has open tasks: `bd list --epic your-epic`
 
 ### "Agent not found"
 
@@ -555,6 +702,10 @@ ralph-tui/
 │   ├── prd/              # PRD generation and parsing
 │   └── tui/              # Terminal UI components (OpenTUI/React)
 │       └── components/   # React components
+├── skills/               # Bundled skills for PRD/task creation
+│   ├── ralph-tui-prd/
+│   ├── ralph-tui-create-json/
+│   └── ralph-tui-create-beads/
 ```
 
 ### Key Technologies
