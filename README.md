@@ -768,7 +768,7 @@ Ralph TUI is built with:
 - [Zod](https://zod.dev) - Configuration validation
 - [smol-toml](https://github.com/squirrelchat/smol-toml) - TOML parsing
 
-Thanks to Geoffrey Huntley for the [original Raplh Wiggum loop concept](https://ghuntley.com/ralph/).
+Thanks to Geoffrey Huntley for the [original Ralph Wiggum loop concept](https://ghuntley.com/ralph/).
 
 ---
 
