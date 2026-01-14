@@ -36,6 +36,26 @@ The user can respond with shorthand like "1A, 2C" for quick iteration.
 
 export const PRD_SYSTEM_PROMPT = buildPrdSystemPrompt(DEFAULT_PRD_SKILL);
 
+const PRD_COMPATIBILITY_GUIDANCE = `
+# PRD Output Requirements
+- Wrap the final PRD in [PRD]...[/PRD] markers.
+- Start the PRD with a "# PRD: <Feature Name>" heading.
+- Use markdown formatting suitable for conversion tools.
+`;
+
+function stripSkillFrontMatter(skillSource: string): string {
+  const frontMatterRegex = /^---\s*[\s\S]*?\n---\s*\n?/;
+  return skillSource.replace(frontMatterRegex, '').trim();
+}
+
+export function buildPrdSystemPromptFromSkillSource(skillSource: string): string {
+  const cleanedSource = stripSkillFrontMatter(skillSource);
+  if (!cleanedSource) {
+    return PRD_COMPATIBILITY_GUIDANCE.trim();
+  }
+  return `${cleanedSource}\n\n${PRD_COMPATIBILITY_GUIDANCE}`.trim();
+}
+
 /**
  * ChatEngine manages multi-turn conversations with an AI agent.
  * Each message triggers an agent call with the full conversation history.
@@ -345,11 +365,14 @@ export function createPrdChatEngine(
     cwd?: string;
     timeout?: number;
     prdSkill?: string;
+    prdSkillSource?: string;
   } = {}
 ): ChatEngine {
-  const systemPrompt = options.prdSkill
-    ? buildPrdSystemPrompt(options.prdSkill)
-    : PRD_SYSTEM_PROMPT;
+  const systemPrompt = options.prdSkillSource
+    ? buildPrdSystemPromptFromSkillSource(options.prdSkillSource)
+    : options.prdSkill
+      ? buildPrdSystemPrompt(options.prdSkill)
+      : PRD_SYSTEM_PROMPT;
 
   return new ChatEngine({
     agent,

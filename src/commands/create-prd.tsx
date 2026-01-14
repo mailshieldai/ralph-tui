@@ -39,10 +39,8 @@ export interface CreatePrdArgs {
   /** Timeout for agent calls in milliseconds */
   timeout?: number;
 
-  /** PRD skill folder inside skills_dir */
   prdSkill?: string;
 
-  /** Resolved PRD skill prompt source */
   prdSkillSource?: string;
 }
 
@@ -122,12 +120,28 @@ Examples:
 `);
 }
 
-async function validatePrdSkill(
+async function loadPrdSkillSource(
   prdSkill: string,
   skillsDir: string,
   cwd: string
-): Promise<void> {
+): Promise<string> {
   const resolvedSkillsDir = resolve(cwd, skillsDir);
+
+  try {
+    const stats = await stat(resolvedSkillsDir);
+    if (!stats.isDirectory()) {
+      console.error(
+        `Error: skills_dir '${skillsDir}' is not a directory at ${resolvedSkillsDir}.`
+      );
+      process.exit(1);
+    }
+  } catch {
+    console.error(
+      `Error: skills_dir '${skillsDir}' was not found or not readable at ${resolvedSkillsDir}.`
+    );
+    process.exit(1);
+  }
+
   const skillPath = join(resolvedSkillsDir, prdSkill);
 
   try {
@@ -147,6 +161,22 @@ async function validatePrdSkill(
     await access(skillFile, constants.R_OK);
   } catch {
     console.error(`Error: PRD skill '${prdSkill}' is missing SKILL.md in ${skillPath}.`);
+    process.exit(1);
+  }
+
+  try {
+    const skillSource = await readFile(skillFile, 'utf-8');
+    if (!skillSource.trim()) {
+      console.error(`Error: PRD skill '${prdSkill}' has an empty SKILL.md in ${skillPath}.`);
+      process.exit(1);
+    }
+    return skillSource;
+  } catch (error) {
+    console.error(
+      `Error: Failed to read PRD skill '${prdSkill}' from ${skillFile}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
     process.exit(1);
   }
 }
@@ -251,6 +281,7 @@ async function runChatMode(parsedArgs: CreatePrdArgs): Promise<PrdCreationResult
         outputDir={outputDir}
         timeout={timeout}
         prdSkill={parsedArgs.prdSkill}
+        prdSkillSource={parsedArgs.prdSkillSource}
         onComplete={handleComplete}
         onCancel={handleCancel}
         onError={handleError}
@@ -273,14 +304,18 @@ export async function executeCreatePrdCommand(args: string[]): Promise<void> {
 
   const storedConfig = await loadStoredConfig(cwd);
 
-  if (parsedArgs.prdSkill && !storedConfig.skills_dir?.trim()) {
-    console.error('Error: --prd-skill requires skills_dir to be set in config.');
-    console.error('Set skills_dir in ~/.config/ralph-tui/config.toml or .ralph-tui/config.toml.');
-    process.exit(1);
-  }
+  if (parsedArgs.prdSkill) {
+    if (!storedConfig.skills_dir?.trim()) {
+      console.error('Error: --prd-skill requires skills_dir to be set in config.');
+      console.error('Set skills_dir in ~/.config/ralph-tui/config.toml or .ralph-tui/config.toml.');
+      process.exit(1);
+    }
 
-  if (parsedArgs.prdSkill && storedConfig.skills_dir) {
-    await validatePrdSkill(parsedArgs.prdSkill, storedConfig.skills_dir, cwd);
+    parsedArgs.prdSkillSource = await loadPrdSkillSource(
+      parsedArgs.prdSkill,
+      storedConfig.skills_dir,
+      cwd
+    );
   }
 
   const result = await runChatMode(parsedArgs);
