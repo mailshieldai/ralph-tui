@@ -1,6 +1,8 @@
 # Ralph TUI
 
 [![npm version](https://img.shields.io/npm/v/ralph-tui.svg)](https://www.npmjs.com/package/ralph-tui)
+[![CI](https://github.com/subsy/ralph-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/subsy/ralph-tui/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/subsy/ralph-tui/graph/badge.svg)](https://codecov.io/gh/subsy/ralph-tui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-f9f1e1.svg)](https://bun.sh)
 
