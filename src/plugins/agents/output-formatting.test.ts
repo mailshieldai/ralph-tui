@@ -270,10 +270,11 @@ describe('processAgentEvents', () => {
   // Import needed for these tests
   const { processAgentEvents } = require('./output-formatting.js');
 
-  test('displays text events', () => {
+  test('displays text events with trailing newline', () => {
     const events = [{ type: 'text', content: 'Hello world' }];
     const result = processAgentEvents(events);
-    expect(result).toBe('Hello world');
+    // Text always gets trailing newline for streaming parser compatibility
+    expect(result).toBe('Hello world\n');
   });
 
   test('displays tool_use events with formatting', () => {
@@ -281,8 +282,8 @@ describe('processAgentEvents', () => {
     const result = processAgentEvents(events);
     expect(result).toContain('[read]');
     expect(result).toContain('/test.ts');
-    // Tool calls always start with newline for separation
-    expect(result.startsWith('\n')).toBe(true);
+    // Tool call alone doesn't need leading newline (no preceding content)
+    expect(result.startsWith('\n')).toBe(false);
   });
 
   test('displays error events', () => {
@@ -298,7 +299,8 @@ describe('processAgentEvents', () => {
       { type: 'text', content: 'After' },
     ];
     const result = processAgentEvents(events);
-    expect(result).toBe('BeforeAfter');
+    // Each text gets trailing newline
+    expect(result).toBe('Before\nAfter\n');
     expect(result).not.toContain('should not appear');
   });
 
@@ -309,7 +311,8 @@ describe('processAgentEvents', () => {
       { type: 'text', content: 'After' },
     ];
     const result = processAgentEvents(events);
-    expect(result).toBe('BeforeAfter');
+    // Each text gets trailing newline
+    expect(result).toBe('Before\nAfter\n');
   });
 
   test('processes mixed events correctly', () => {
@@ -337,14 +340,14 @@ describe('processAgentEvents', () => {
     expect(result).toContain('[read]');
   });
 
-  test('tool_use on its own still has leading newline', () => {
-    // This handles streaming where tool_use comes in its own chunk
+  test('tool_use alone does not have leading newline', () => {
+    // Tool calls only get leading newline when following content that doesn't end with newline
     const events = [
       { type: 'tool_use', name: 'read', input: { file_path: '/test.ts' } },
     ];
     const result = processAgentEvents(events);
-    // Should start with newline so it appears on its own line
-    expect(result.startsWith('\n')).toBe(true);
+    // No preceding content, so no leading newline needed
+    expect(result.startsWith('\n')).toBe(false);
     expect(result).toContain('[read]');
   });
 
@@ -359,6 +362,7 @@ describe('processAgentEvents', () => {
       { type: 'text', content: 'visible' },
     ];
     const result = processAgentEvents(events);
-    expect(result).toBe('visible');
+    // Non-empty text gets trailing newline
+    expect(result).toBe('visible\n');
   });
 });
