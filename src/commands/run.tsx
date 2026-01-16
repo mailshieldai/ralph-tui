@@ -74,7 +74,7 @@ export function parseRunArgs(args: string[]): ExtendedRuntimeOptions {
 
     if (arg.startsWith('--sandbox=')) {
       const mode = arg.split('=')[1];
-      if (mode === 'bwrap' || mode === 'docker') {
+      if (mode === 'bwrap') {
         options.sandbox = {
           ...options.sandbox,
           enabled: true,
@@ -253,7 +253,6 @@ Options:
   --no-notify         Force disable desktop notifications
   --sandbox           Enable sandboxing (auto mode)
   --sandbox=bwrap     Force Bubblewrap sandboxing
-  --sandbox=docker    Force Docker sandboxing
   --no-sandbox        Disable sandboxing
   --no-network        Disable network access in sandbox
 

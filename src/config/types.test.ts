@@ -34,7 +34,6 @@ describe('DEFAULT_SANDBOX_CONFIG', () => {
     expect(DEFAULT_SANDBOX_CONFIG.enabled).toBe(false);
     expect(DEFAULT_SANDBOX_CONFIG.mode).toBe('auto');
     expect(DEFAULT_SANDBOX_CONFIG.network).toBe(true);
-    expect(DEFAULT_SANDBOX_CONFIG.image).toBe('ubuntu:22.04');
   });
 });
 

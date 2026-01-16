@@ -62,7 +62,7 @@ export interface NotificationsConfig {
   sound?: NotificationSoundMode;
 }
 
-export type SandboxMode = 'auto' | 'bwrap' | 'docker' | 'off';
+export type SandboxMode = 'auto' | 'bwrap' | 'off';
 
 export interface SandboxConfig {
   enabled?: boolean;
@@ -70,16 +70,14 @@ export interface SandboxConfig {
   network?: boolean;
   allowPaths?: string[];
   readOnlyPaths?: string[];
-  image?: string;
 }
 
 export const DEFAULT_SANDBOX_CONFIG: Required<
-  Pick<SandboxConfig, 'enabled' | 'mode' | 'network' | 'image'>
+  Pick<SandboxConfig, 'enabled' | 'mode' | 'network'>
 > = {
   enabled: false,
   mode: 'auto',
   network: true,
-  image: 'ubuntu:22.04',
 };
 
 /**

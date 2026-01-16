@@ -47,13 +47,13 @@ export function commandExists(command: string): Promise<boolean> {
 export async function detectSandboxMode(): Promise<Exclude<SandboxMode, 'auto'>> {
   const os = platform();
 
+  // bwrap is only available on Linux
   if (os === 'linux' && (await commandExists('bwrap'))) {
     return 'bwrap';
   }
 
-  if (await commandExists('docker')) {
-    return 'docker';
-  }
-
+  // No sandbox available on this platform
+  // macOS sandbox-exec support will be added separately
+  // Windows users should use WSL with bwrap
   return 'off';
 }

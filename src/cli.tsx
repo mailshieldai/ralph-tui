@@ -62,7 +62,6 @@ Run Options:
   --no-notify         Force disable desktop notifications
   --sandbox           Enable sandboxing (auto mode)
   --sandbox=bwrap     Force Bubblewrap sandboxing
-  --sandbox=docker    Force Docker sandboxing
   --no-sandbox        Disable sandboxing
   --no-network        Disable network access in sandbox
 
