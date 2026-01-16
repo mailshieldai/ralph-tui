@@ -211,6 +211,16 @@ function extractToolCalls(payload: Record<string, unknown>): DroidToolCall[] {
     calls.push(parsedSingle);
   }
 
+  // Handle droid's top-level tool_call format where the entire payload IS the tool call
+  // e.g., {"type":"tool_call","toolName":"LS","parameters":{...}}
+  const payloadType = readString(payload.type);
+  if (payloadType === 'tool_call' && calls.length === 0) {
+    const parsed = parseToolCall(payload);
+    if (parsed) {
+      calls.push(parsed);
+    }
+  }
+
   // Also check for Anthropic/Claude format: content[] with tool_use blocks
   // This handles agents that output in the standard Anthropic message format
   const content = payload.content ?? (payload.message as Record<string, unknown>)?.content;
@@ -286,6 +296,16 @@ function extractToolResults(payload: Record<string, unknown>): DroidToolResult[]
   const parsedSingle = parseToolResult(singleResult);
   if (parsedSingle) {
     results.push(parsedSingle);
+  }
+
+  // Handle droid's top-level tool_result format where the entire payload IS the tool result
+  // e.g., {"type":"tool_result","id":"call_xxx","toolId":"LS","value":"..."}
+  const payloadType = readString(payload.type);
+  if (payloadType === 'tool_result' && results.length === 0) {
+    const parsed = parseToolResult(payload);
+    if (parsed) {
+      results.push(parsed);
+    }
   }
 
   return results;
