@@ -453,25 +453,22 @@ export class ExecutionEngine {
   }
 
   /**
-   * Get the next available task, excluding skipped ones
+   * Get the next available task, excluding skipped ones.
+   * Delegates to the tracker's getNextTask() for proper dependency-aware ordering.
+   * See: https://github.com/subsy/ralph-tui/issues/97
    */
   private async getNextAvailableTask(): Promise<TrackerTask | null> {
-    const tasks = await this.tracker!.getTasks({ status: ['open', 'in_progress'] });
+    // Convert skipped tasks Set to array for the filter
+    const excludeIds = Array.from(this.skippedTasks);
 
-    for (const task of tasks) {
-      // Skip tasks that have been marked as skipped
-      if (this.skippedTasks.has(task.id)) {
-        continue;
-      }
+    // Delegate to tracker's getNextTask for dependency-aware ordering
+    // The tracker (e.g., beads) uses bd ready which properly handles dependencies
+    const task = await this.tracker!.getNextTask({
+      status: ['open', 'in_progress'],
+      excludeIds: excludeIds.length > 0 ? excludeIds : undefined,
+    });
 
-      // Check if task is ready (no unresolved dependencies)
-      const isReady = await this.tracker!.isTaskReady(task.id);
-      if (isReady) {
-        return task;
-      }
-    }
-
-    return null;
+    return task ?? null;
   }
 
   /**
@@ -948,6 +945,7 @@ export class ExecutionEngine {
         subagentTrace,
         agentSwitches: this.currentIterationAgentSwitches.length > 0 ? [...this.currentIterationAgentSwitches] : undefined,
         completionSummary,
+        sandboxConfig: this.config.sandbox,
       });
 
       // Append progress entry for cross-iteration context
