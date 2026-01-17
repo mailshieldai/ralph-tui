@@ -104,6 +104,15 @@ export interface IterationLogMetadata {
 
   /** Structured summary of what was accomplished (for context recovery) */
   summary?: IterationSummary;
+
+  /** Sandbox mode used for this iteration ('docker', 'seatbelt', 'off') */
+  sandboxMode?: string;
+
+  /** Resolved sandbox mode when configured mode was 'auto' */
+  resolvedSandboxMode?: string;
+
+  /** Whether network access was enabled in sandbox */
+  sandboxNetwork?: boolean;
 }
 
 /**

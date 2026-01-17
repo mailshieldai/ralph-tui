@@ -28,7 +28,7 @@ import type {
 import { ITERATIONS_DIR } from './types.js';
 import type { SubagentEvent, SubagentState } from '../plugins/agents/tracing/types.js';
 import type { IterationResult } from '../engine/types.js';
-import type { RalphConfig } from '../config/types.js';
+import type { RalphConfig, SandboxConfig, SandboxMode } from '../config/types.js';
 
 /**
  * Divider between metadata header and raw output in log files.
@@ -95,6 +95,12 @@ export interface BuildMetadataOptions {
 
   /** Structured summary of what was accomplished (for context recovery) */
   summary?: IterationSummary;
+
+  /** Sandbox configuration used for this iteration */
+  sandboxConfig?: SandboxConfig;
+
+  /** Resolved sandbox mode when configured mode was 'auto' */
+  resolvedSandboxMode?: Exclude<SandboxMode, 'auto'>;
 }
 
 /**
@@ -108,15 +114,28 @@ export function buildMetadata(
   let config: Partial<RalphConfig> | undefined;
   let agentSwitches: AgentSwitchEntry[] | undefined;
   let completionSummary: string | undefined;
-
   let summary: IterationSummary | undefined;
+  let sandboxConfig: SandboxConfig | undefined;
+  let resolvedSandboxMode: Exclude<SandboxMode, 'auto'> | undefined;
 
-  if (configOrOptions && 'agentSwitches' in configOrOptions) {
+  // Detect new options object format by checking for any of its unique keys
+  const isOptionsObject = configOrOptions && (
+    'config' in configOrOptions ||
+    'agentSwitches' in configOrOptions ||
+    'completionSummary' in configOrOptions ||
+    'sandboxConfig' in configOrOptions ||
+    'resolvedSandboxMode' in configOrOptions
+  );
+
+  if (isOptionsObject) {
     // New options object
-    config = configOrOptions.config;
-    agentSwitches = configOrOptions.agentSwitches;
-    completionSummary = configOrOptions.completionSummary;
-    summary = configOrOptions.summary;
+    const opts = configOrOptions as BuildMetadataOptions;
+    config = opts.config;
+    agentSwitches = opts.agentSwitches;
+    completionSummary = opts.completionSummary;
+    summary = opts.summary;
+    sandboxConfig = opts.sandboxConfig;
+    resolvedSandboxMode = opts.resolvedSandboxMode;
   } else {
     // Old config-only signature for backward compatibility
     config = configOrOptions as Partial<RalphConfig> | undefined;
@@ -140,6 +159,9 @@ export function buildMetadata(
     agentSwitches: agentSwitches && agentSwitches.length > 0 ? agentSwitches : undefined,
     completionSummary,
     summary,
+    sandboxMode: sandboxConfig?.mode,
+    resolvedSandboxMode,
+    sandboxNetwork: sandboxConfig?.network,
   };
 }
 
@@ -441,6 +463,12 @@ export interface SaveIterationLogOptions {
 
   /** Structured summary of what was accomplished (for context recovery) */
   summary?: IterationSummary;
+
+  /** Sandbox configuration used for this iteration */
+  sandboxConfig?: SandboxConfig;
+
+  /** Resolved sandbox mode when configured mode was 'auto' */
+  resolvedSandboxMode?: Exclude<SandboxMode, 'auto'>;
 }
 
 /**
@@ -466,8 +494,17 @@ export async function saveIterationLog(
   let agentSwitches: AgentSwitchEntry[] | undefined;
   let completionSummary: string | undefined;
   let summary: IterationSummary | undefined;
+  let sandboxConfig: SandboxConfig | undefined;
+  let resolvedSandboxMode: Exclude<SandboxMode, 'auto'> | undefined;
 
-  if (options && 'subagentTrace' in options) {
+  // Detect new options object format by checking for any of its unique keys
+  const isOptionsObject = options && (
+    'subagentTrace' in options ||
+    'sandboxConfig' in options ||
+    'resolvedSandboxMode' in options
+  );
+
+  if (isOptionsObject) {
     // New options object
     const saveOptions = options as SaveIterationLogOptions;
     config = saveOptions.config;
@@ -475,6 +512,8 @@ export async function saveIterationLog(
     agentSwitches = saveOptions.agentSwitches;
     completionSummary = saveOptions.completionSummary;
     summary = saveOptions.summary;
+    sandboxConfig = saveOptions.sandboxConfig;
+    resolvedSandboxMode = saveOptions.resolvedSandboxMode;
   } else {
     // Old config-only signature for backward compatibility
     config = options as Partial<RalphConfig> | undefined;
@@ -488,6 +527,8 @@ export async function saveIterationLog(
     agentSwitches,
     completionSummary,
     summary,
+    sandboxConfig,
+    resolvedSandboxMode,
   });
   const filename = generateLogFilename(result.iteration, result.task.id);
   const filePath = join(getIterationsDir(cwd, outputDir), filename);
