@@ -27,6 +27,10 @@ export {
   getUserPromptPath,
   getBundledPrompt,
   initializeUserPrompts,
+  installBuiltinTemplates,
+  installGlobalTemplates,
+  getProjectTemplatePath,
+  getGlobalTemplatePath,
 } from './engine.js';
 
 export {
