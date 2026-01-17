@@ -1,6 +1,6 @@
 {{!--
   ABOUTME: Beads tracker prompt template.
-  Context-first structure: PRD → Patterns → Task → Workflow
+  Context-first structure: PRD → Task → Workflow
 
   Users can customize this template by copying to:
   - Project: .ralph-tui-prompt.hbs
@@ -9,25 +9,11 @@
 
 {{!-- Full PRD for project context (agent studies this first) --}}
 {{#if prdContent}}
-## PRD: {{prdName}}
-{{#if prdDescription}}
-{{prdDescription}}
-{{/if}}
-
-### Progress: {{prdCompletedCount}}/{{prdTotalCount}} tasks complete
-
-<details>
-<summary>Full PRD Document (click to expand)</summary>
+We are working in a project to implement the following Product Requirements Document (PRD):
 
 {{prdContent}}
 
-</details>
-{{/if}}
-
-{{!-- Learnings from previous iterations (patterns first) --}}
-{{#if codebasePatterns}}
-## Codebase Patterns (Study These First)
-{{codebasePatterns}}
+---
 {{/if}}
 
 ## Bead Details

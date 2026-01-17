@@ -1,6 +1,6 @@
 {{!--
   ABOUTME: Beads+bv tracker prompt template.
-  Context-first structure: PRD → Selection Context → Patterns → Task → Workflow
+  Context-first structure: PRD → Selection Context → Task → Workflow
   Includes bv-specific selection reasoning and impact sections.
 
   Users can customize this template by copying to:
@@ -10,31 +10,17 @@
 
 {{!-- Full PRD for project context (agent studies this first) --}}
 {{#if prdContent}}
-## PRD: {{prdName}}
-{{#if prdDescription}}
-{{prdDescription}}
-{{/if}}
-
-### Progress: {{prdCompletedCount}}/{{prdTotalCount}} tasks complete
-
-<details>
-<summary>Full PRD Document (click to expand)</summary>
+We are working in a project to implement the following Product Requirements Document (PRD):
 
 {{prdContent}}
 
-</details>
+---
 {{/if}}
 
 {{!-- Why this task was selected (bv context) --}}
 {{#if selectionReason}}
 ## Why This Task Was Selected
 {{selectionReason}}
-{{/if}}
-
-{{!-- Learnings from previous iterations (patterns first) --}}
-{{#if codebasePatterns}}
-## Codebase Patterns (Study These First)
-{{codebasePatterns}}
 {{/if}}
 
 ## Bead Details
