@@ -128,11 +128,10 @@ describe('output-parser', () => {
       expect(result).toContain('Claude assistant message');
     });
 
-    test('should return empty for short unparseable JSON', () => {
-      // Short JSON that can't be parsed should return stripped output
+    test('should return raw output for short unparseable JSON', () => {
+      // Short JSON that can't be parsed falls through to stripAnsiCodes(rawOutput)
       const shortBadJson = '{"incomplete';
       const result = parseAgentOutput(shortBadJson);
-      // Falls through to stripAnsiCodes(rawOutput) for short unparseable JSON
       expect(result).toBe('{"incomplete');
     });
   });

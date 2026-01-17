@@ -1071,8 +1071,12 @@ export function RunApp({
     }
 
     // Check if this task is currently being executed
-    // Use both ID match AND status check for robustness against state timing issues
-    const isActiveTask = selectedTask?.status === 'active';
+    // Derive active status from the effective task (iterations view uses selectedIteration.task,
+    // tasks view uses selectedTask) to avoid showing wrong output
+    const effectiveTaskStatus = viewMode === 'iterations'
+      ? selectedIteration?.task?.status
+      : selectedTask?.status;
+    const isActiveTask = effectiveTaskStatus === 'active' || effectiveTaskStatus === 'in_progress';
     const isExecuting = currentTaskId === effectiveTaskId || isActiveTask;
     if (isExecuting && currentTaskId) {
       // Use the captured start time from the iteration:started event
@@ -1113,7 +1117,7 @@ export function RunApp({
 
     // Task hasn't been run yet (or historical log not yet loaded)
     return { iteration: 0, output: undefined, segments: undefined, timing: undefined };
-  }, [effectiveTaskId, selectedTask, currentTaskId, currentIteration, currentOutput, currentSegments, iterations, historicalOutputCache, currentIterationStartedAt]);
+  }, [effectiveTaskId, selectedTask, selectedIteration, viewMode, currentTaskId, currentIteration, currentOutput, currentSegments, iterations, historicalOutputCache, currentIterationStartedAt]);
 
   // Compute historic agent/model for display when viewing completed iterations
   // Falls back to current values if viewing a live iteration or no historic data available
