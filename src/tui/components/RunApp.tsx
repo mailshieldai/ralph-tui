@@ -4,7 +4,8 @@
  * Handles graceful interruption with confirmation dialog.
  */
 
-import { useKeyboard, useTerminalDimensions } from '@opentui/react';
+import { useKeyboard, useTerminalDimensions, useRenderer } from '@opentui/react';
+import type { KeyEvent } from '@opentui/core';
 import type { ReactNode } from 'react';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { colors, layout } from '../theme.js';
@@ -36,6 +37,8 @@ import type { AgentPluginMeta } from '../../plugins/agents/types.js';
 import type { TrackerPluginMeta } from '../../plugins/trackers/types.js';
 import { getIterationLogsByTask } from '../../logs/index.js';
 import type { SubagentTraceStats, SubagentHierarchyNode } from '../../logs/types.js';
+import { platform } from 'node:os';
+import { writeToClipboard } from '../../utils/index.js';
 import { StreamingOutputParser } from '../output-parser.js';
 import type { FormattedSegment } from '../../plugins/agents/output-formatting.js';
 
@@ -308,6 +311,9 @@ export function RunApp({
   resolvedSandboxMode,
 }: RunAppProps): ReactNode {
   const { width, height } = useTerminalDimensions();
+  const renderer = useRenderer();
+  // Copy feedback message state (auto-dismissed after 2s)
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>(() => {
     // Initialize with initial tasks if provided (for ready state)
     if (initialTasks && initialTasks.length > 0) {
@@ -710,7 +716,33 @@ export function RunApp({
 
   // Handle keyboard navigation
   const handleKeyboard = useCallback(
-    (key: { name: string; sequence?: string }) => {
+    (key: KeyEvent) => {
+      // Handle clipboard copy:
+      // - macOS: Cmd+C (meta key)
+      // - Linux: Ctrl+Shift+C or Alt+C
+      // - Windows: Ctrl+C
+      // Note: We check this early so copy works even when dialogs are open
+      const isMac = platform() === 'darwin';
+      const isWindows = platform() === 'win32';
+      const selection = renderer.getSelection();
+      const isCopyShortcut = isMac
+        ? key.meta && key.name === 'c'
+        : isWindows
+          ? key.ctrl && key.name === 'c'
+          : (key.ctrl && key.shift && key.name === 'c') || (key.option && key.name === 'c');
+
+      if (isCopyShortcut && selection) {
+        const selectedText = selection.getSelectedText();
+        if (selectedText && selectedText.length > 0) {
+          writeToClipboard(selectedText).then((result) => {
+            if (result.success) {
+              setCopyFeedback(`Copied ${result.charCount} chars`);
+            }
+          });
+        }
+        return;
+      }
+
       // When interrupt dialog is showing, only handle y/n/Esc
       if (showInterruptDialog) {
         switch (key.name) {
@@ -979,7 +1011,7 @@ export function RunApp({
           break;
       }
     },
-    [displayedTasks, selectedIndex, status, engine, onQuit, viewMode, iterations, iterationSelectedIndex, iterationHistoryLength, onIterationDrillDown, showInterruptDialog, onInterruptConfirm, onInterruptCancel, showHelp, showSettings, showQuitDialog, showEpicLoader, onStart, storedConfig, onSaveSettings, onLoadEpics, subagentDetailLevel, onSubagentPanelVisibilityChange, currentIteration, maxIterations]
+    [displayedTasks, selectedIndex, status, engine, onQuit, viewMode, iterations, iterationSelectedIndex, iterationHistoryLength, onIterationDrillDown, showInterruptDialog, onInterruptConfirm, onInterruptCancel, showHelp, showSettings, showQuitDialog, showEpicLoader, onStart, storedConfig, onSaveSettings, onLoadEpics, subagentDetailLevel, onSubagentPanelVisibilityChange, currentIteration, maxIterations, renderer]
   );
 
   useKeyboard(handleKeyboard);
@@ -1177,6 +1209,15 @@ export function RunApp({
     loadMissingStats();
   }, [viewMode, iterations, cwd, subagentStatsCache]);
 
+  // Auto-dismiss copy feedback after 2 seconds
+  useEffect(() => {
+    if (!copyFeedback) return;
+    const timer = setTimeout(() => {
+      setCopyFeedback(null);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [copyFeedback]);
+
   return (
     <box
       style={{
@@ -1309,6 +1350,24 @@ export function RunApp({
 
       {/* Footer */}
       <Footer />
+
+      {/* Copy feedback toast - positioned at bottom right */}
+      {copyFeedback && (
+        <box
+          style={{
+            position: 'absolute',
+            bottom: 2,
+            right: 2,
+            paddingLeft: 1,
+            paddingRight: 1,
+            backgroundColor: colors.bg.tertiary,
+            border: true,
+            borderColor: colors.status.success,
+          }}
+        >
+          <text fg={colors.status.success}>✓ {copyFeedback}</text>
+        </box>
+      )}
 
       {/* Interrupt Confirmation Dialog */}
       <ConfirmationDialog
